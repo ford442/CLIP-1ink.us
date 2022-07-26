@@ -2,16 +2,16 @@ from clip.clip import tokenize as _tokenize, load as _load, available_models as 
 import re
 import string
 
-dependencies = ["torch", "torchvision", "ftfy", "regex", "tqdm"]
+dependencies=["torch", "torchvision", "ftfy", "regex", "tqdm"]
 
 # For compatibility (cannot include special characters in function name)
-model_functions = { model: re.sub(f'[{string.punctuation}]', '_', model) for model in _available_models()}
+model_functions={ model: re.sub(f'[{string.punctuation}]', '_', model) for model in _available_models()}
 
 def _create_hub_entrypoint(model):
     def entrypoint(**kwargs):      
         return _load(model, **kwargs)
     
-    entrypoint.__doc__ = f"""Loads the {model} CLIP model
+    entrypoint.__doc__=f"""Loads the {model} CLIP model
 
         Parameters
         ----------
@@ -37,6 +37,6 @@ def _create_hub_entrypoint(model):
 def tokenize():
     return _tokenize
 
-_entrypoints = {model_functions[model]: _create_hub_entrypoint(model) for model in _available_models()}
+_entrypoints={model_functions[model]: _create_hub_entrypoint(model) for model in _available_models()}
 
 globals().update(_entrypoints)

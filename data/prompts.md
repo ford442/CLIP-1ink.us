@@ -10,7 +10,7 @@ If you are viewing this document on GitHub, use the table of contents icon at th
 ## Birdsnap
 
 ```bash
-classes = [
+classes=[
     'Acadian Flycatcher',
     'Acorn Woodpecker',
     'Alder Flycatcher',
@@ -513,7 +513,7 @@ classes = [
     'Zone tailed Hawk',
 ]
 
-templates = [
+templates=[
     'a photo of a {}, a type of bird.',
 ]
 ```
@@ -523,7 +523,7 @@ templates = [
 ## CIFAR10
 
 ```bash
-classes = [
+classes=[
     'airplane',
     'automobile',
     'bird',
@@ -536,7 +536,7 @@ classes = [
     'truck',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
     'a blurry photo of a {}.',
     'a black and white photo of a {}.',
@@ -563,7 +563,7 @@ templates = [
 ## CIFAR100
 
 ```bash
-classes = [
+classes=[
     'apple',
     'aquarium fish',
     'baby',
@@ -666,7 +666,7 @@ classes = [
     'worm',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
     'a blurry photo of a {}.',
     'a black and white photo of a {}.',
@@ -693,7 +693,7 @@ templates = [
 ## CLEVRCounts
 
 ```bash
-classes = [
+classes=[
     '10',
     '3',
     '4',
@@ -704,7 +704,7 @@ classes = [
     '9',
 ]
 
-templates = [
+templates=[
     'a photo of {} objects.',
 ]
 ```
@@ -714,7 +714,7 @@ templates = [
 ## Caltech101
 
 ```bash
-classes = [
+classes=[
     'background',
     'off-center face',
     'centered face',
@@ -819,7 +819,7 @@ classes = [
     'yin and yang symbol',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
     'a painting of a {}.',
     'a plastic {}.',
@@ -862,7 +862,7 @@ templates = [
 ## Country211
 
 ```bash
-classes = [
+classes=[
     'Andorra',
     'United Arab Emirates',
     'Afghanistan',
@@ -1076,7 +1076,7 @@ classes = [
     'Zimbabwe',
 ]
 
-templates = [
+templates=[
     'a photo i took in {}.',
     'a photo i took while visiting {}.',
     'a photo from my home country of {}.',
@@ -1090,7 +1090,7 @@ templates = [
 ## DescribableTextures
 
 ```bash
-classes = [
+classes=[
     'banded',
     'blotchy',
     'braided',
@@ -1140,7 +1140,7 @@ classes = [
     'zigzagged',
 ]
 
-templates = [
+templates=[
     'a photo of a {} texture.',
     'a photo of a {} pattern.',
     'a photo of a {} thing.',
@@ -1157,7 +1157,7 @@ templates = [
 ## EuroSAT
 
 ```bash
-classes = [
+classes=[
     'forest',
     'permanent crop land',
     'residential buildings or homes or apartments',
@@ -1170,7 +1170,7 @@ classes = [
     'highway or road',
 ]
 
-templates = [
+templates=[
     'a centered satellite photo of {}.',
     'a centered satellite photo of a {}.',
     'a centered satellite photo of the {}.',
@@ -1182,7 +1182,7 @@ templates = [
 ## FGVCAircraft
 
 ```bash
-classes = [
+classes=[
     '707-320',
     '727-200',
     '737-200',
@@ -1285,7 +1285,7 @@ classes = [
     'Yak-42',
 ]
 
-templates = [
+templates=[
     'a photo of a {}, a type of aircraft.',
     'a photo of the {}, a type of aircraft.',
 ]
@@ -1296,7 +1296,7 @@ templates = [
 ## FacialEmotionRecognition2013
 
 ```bash
-classes = [
+classes=[
     ['angry'],
     ['disgusted'],
     ['fearful'],
@@ -1306,7 +1306,7 @@ classes = [
     ['neutral', 'bored'],
 ]
 
-templates = [
+templates=[
     'a photo of a {} looking face.',
     'a photo of a face showing the emotion: {}.',
     'a photo of a face looking {}.',
@@ -1321,7 +1321,7 @@ templates = [
 ## Flowers102
 
 ```bash
-classes = [
+classes=[
     'pink primrose',
     'hard-leaved pocket orchid',
     'canterbury bells',
@@ -1426,7 +1426,7 @@ classes = [
     'blackberry lily',
 ]
 
-templates = [
+templates=[
     'a photo of a {}, a type of flower.',
 ]
 ```
@@ -1436,7 +1436,7 @@ templates = [
 ## Food101
 
 ```bash
-classes = [
+classes=[
     'apple pie',
     'baby back ribs',
     'baklava',
@@ -1540,7 +1540,7 @@ classes = [
     'waffles',
 ]
 
-templates = [
+templates=[
     'a photo of {}, a type of food.',
 ]
 ```
@@ -1550,7 +1550,7 @@ templates = [
 ## GTSRB
 
 ```bash
-classes = [
+classes=[
     'red and white circle 20 kph speed limit',
     'red and white circle 30 kph speed limit',
     'red and white circle 50 kph speed limit',
@@ -1596,7 +1596,7 @@ classes = [
     'white circle with gray strike bar indicating no passing for trucks has ended',
 ]
 
-templates = [
+templates=[
     'a zoomed in photo of a "{}" traffic sign.',
     'a centered photo of a "{}" traffic sign.',
     'a close up photo of a "{}" traffic sign.',
@@ -1608,12 +1608,12 @@ templates = [
 ## HatefulMemes
 
 ```bash
-classes = [
+classes=[
     'meme',
     'hatespeech meme',
 ]
 
-templates = [
+templates=[
     'a {}.',
 ]
 ```
@@ -1623,14 +1623,14 @@ templates = [
 ## KITTI
 
 ```bash
-classes = [
+classes=[
     'a photo i took of a car on my left or right side.',
     'a photo i took with a car nearby.',
     'a photo i took with a car in the distance.',
     'a photo i took with no car.',
 ]
 
-templates = [
+templates=[
     '{}',
 ]
 ```
@@ -1640,7 +1640,7 @@ templates = [
 ## Kinetics700
 
 ```bash
-classes = [
+classes=[
     'abseiling',
     'acting in play',
     'adjusting glasses',
@@ -2343,7 +2343,7 @@ classes = [
     'zumba'
 ]
 
-templates = [
+templates=[
     'a photo of {}.',
     'a photo of a person {}.',
     'a photo of a person using {}.',
@@ -2380,7 +2380,7 @@ templates = [
 ## MNIST
 
 ```bash
-classes = [
+classes=[
     '0',
     '1',
     '2',
@@ -2393,7 +2393,7 @@ classes = [
     '9',
 ]
 
-templates = [
+templates=[
     'a photo of the number: "{}".',
 ]
 ```
@@ -2403,7 +2403,7 @@ templates = [
 ## OxfordPets
 
 ```bash
-classes = [
+classes=[
     'Abyssinian',
     'Bengal',
     'Birman',
@@ -2443,7 +2443,7 @@ classes = [
     'yorkshire terrier',
 ]
 
-templates = [
+templates=[
     'a photo of a {}, a type of pet.',
 ]
 ```
@@ -2453,7 +2453,7 @@ templates = [
 ## PascalVOC2007
 
 ```bash
-classes = [
+classes=[
     'aeroplane',
     'bicycle',
     'bird',
@@ -2476,7 +2476,7 @@ classes = [
     'tvmonitor',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
 ]
 ```
@@ -2486,12 +2486,12 @@ templates = [
 ## PatchCamelyon
 
 ```bash
-classes = [
+classes=[
     'lymph node',
     'lymph node containing metastatic tumor tissue',
 ]
 
-templates = [
+templates=[
     'this is a photo of {}',
 ]
 ```
@@ -2501,7 +2501,7 @@ templates = [
 ## RESISC45
 
 ```bash
-classes = [
+classes=[
     'airplane',
     'airport',
     'baseball diamond',
@@ -2549,7 +2549,7 @@ classes = [
     'wetland',
 ]
 
-templates = [
+templates=[
     'satellite imagery of {}.',
     'aerial imagery of {}.',
     'satellite photo of {}.',
@@ -2576,12 +2576,12 @@ templates = [
 ## SST2
 
 ```bash
-classes = [
+classes=[
     'negative',
     'positive',
 ]
 
-templates = [
+templates=[
     'a {} review of a movie.',
 ]
 ```
@@ -2591,7 +2591,7 @@ templates = [
 ## STL10
 
 ```bash
-classes = [
+classes=[
     'airplane',
     'bird',
     'car',
@@ -2604,7 +2604,7 @@ classes = [
     'truck',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
     'a photo of the {}.',
 ]
@@ -2615,7 +2615,7 @@ templates = [
 ## SUN397
 
 ```bash
-classes = [
+classes=[
     'abbey',
     'airplane cabin',
     'airport terminal',
@@ -3015,7 +3015,7 @@ classes = [
     'youth hostel',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
     'a photo of the {}.',
 ]
@@ -3026,7 +3026,7 @@ templates = [
 ## StanfordCars
 
 ```bash
-classes = [
+classes=[
     'AM General Hummer SUV 2000',
     'Acura RL Sedan 2012',
     'Acura TL Sedan 2012',
@@ -3225,7 +3225,7 @@ classes = [
     'smart fortwo Convertible 2012',
 ]
 
-templates = [
+templates=[
     'a photo of a {}.',
     'a photo of the {}.',
     'a photo of my {}.',
@@ -3242,7 +3242,7 @@ templates = [
 ## UCF101
 
 ```bash
-classes = [
+classes=[
     'Apply Eye Makeup',
     'Apply Lipstick',
     'Archery',
@@ -3346,7 +3346,7 @@ classes = [
     'Yo Yo',
 ]
 
-templates = [
+templates=[
     'a photo of a person {}.',
     'a video of a person {}.',
     'a example of a person {}.',
