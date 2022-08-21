@@ -12,9 +12,9 @@ from .model import build_model
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
 try:
     from torchvision.transforms import InterpolationMode
-    BICUBIC=InterpolationMode.BICUBIC
+    BICUBIC=InterpolationMode.LANCZOS
 except ImportError:
-    BICUBIC=Image.BICUBIC
+    BICUBIC=Image.LANCZOS
 if packaging.version.parse(torch.__version__) < packaging.version.parse("1.7.1"):
     warnings.warn("PyTorch version 1.7.1 or higher is recommended")
 __all__=["available_models", "load", "tokenize"]
