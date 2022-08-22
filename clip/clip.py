@@ -12,9 +12,9 @@ from .model import build_model
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
 try:
     from torchvision.transforms import InterpolationMode
-    BICUBIC=InterpolationMode.LANCZOS
+    BICUBIC=InterpolationMode.BICUBIC
 except ImportError:
-    BICUBIC=Image.LANCZOS
+    BICUBIC=Image.BICUBIC
 if packaging.version.parse(torch.__version__) < packaging.version.parse("1.7.1"):
     warnings.warn("PyTorch version 1.7.1 or higher is recommended")
 __all__=["available_models", "load", "tokenize"]
@@ -82,7 +82,7 @@ def load(name: str, device: Union[str, torch.device]="cuda" if torch.cuda.is_ava
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file, map_location="cpu")
+            state_dict=torch.load(opened_file, map_location="cuda:0")
     if not jit:
         model=build_model(state_dict or model.state_dict()).to(device)
         if str(device) == "cpu":
