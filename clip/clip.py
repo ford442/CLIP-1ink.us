@@ -50,7 +50,6 @@ def _download(url: str, root: str):
                     break
                 output.write(buffer)
                 loop.update(len(buffer))
-
     if hashlib.sha256(open(download_target, "rb").read()).hexdigest() != expected_sha256:
         raise RuntimeError(f"Model has been downloaded but the SHA256 checksum does not not match")
     return download_target
@@ -73,10 +72,9 @@ def load(name: str, device: Union[str, torch.device]="cuda" if torch.cuda.is_ava
         model_path=name
     else:
         raise RuntimeError(f"Model {name} not found; available models={available_models()}")
-
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cpu").eval()
+            model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
             state_dict=None
         except RuntimeError:
             if jit:
