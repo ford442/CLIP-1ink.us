@@ -74,7 +74,7 @@ def load(name: str, device: Union[str, torch.device]="cuda" if torch.cuda.is_ava
         raise RuntimeError(f"Model {name} not found; available models={available_models()}")
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
+            model=torch.jit.load(opened_file, map_location=device if jit else "cpu").eval()
             state_dict=None
         except RuntimeError:
             if jit:
