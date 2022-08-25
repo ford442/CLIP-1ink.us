@@ -74,13 +74,13 @@ def load(sIze, name: str, device: Union[str, torch.device]="cuda:0" if torch.cud
         raise RuntimeError(f"Model {name} not found; available models={available_models()}")
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
+            model=torch.jit.load(opened_file, map_location=device if jit else "cpu").eval()
             state_dict=None
         except RuntimeError:
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file, map_location="cuda:0")
+            state_dict=torch.load(opened_file, map_location="cpu")
     if not jit:
         model=build_model(state_dict or model.state_dict()).to(device)
         if str(device) == "cpu":
