@@ -65,7 +65,7 @@ def _transform(n_px):
     ])
 def available_models() -> List[str]:
     return list(_MODELS.keys())
-def load(name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
+def load(sIze, name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
     if name in _MODELS:
         model_path=_download(_MODELS[name], download_root or os.path.expanduser("~/.cache/clip"))
     elif os.path.isfile(name):
@@ -74,18 +74,18 @@ def load(name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_a
         raise RuntimeError(f"Model {name} not found; available models={available_models()}")
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cpu").eval()
+            model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
             state_dict=None
         except RuntimeError:
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file, map_location="cpu")
+            state_dict=torch.load(opened_file, map_location="cuda:0")
     if not jit:
         model=build_model(state_dict or model.state_dict()).to(device)
         if str(device) == "cpu":
             model.float()
-        return model, _transform(model.visual.input_resolution)
+        return model, _transform(sIze)
     device_holder=torch.jit.trace(lambda: torch.ones([]).to(torch.device(device)), example_inputs=[])
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1]
     def patch_device(module):
@@ -123,7 +123,7 @@ def load(name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_a
         patch_float(model.encode_image)
         patch_float(model.encode_text)
         model.float()
-    return model, _transform(model.input_resolution.item())
+    return model, _transform(sIze)
 def tokenize(texts: Union[str, List[str]], context_length: int=77, truncate: bool=False) -> Union[torch.IntTensor, torch.LongTensor]:
     if isinstance(texts, str):
         texts=[texts]
