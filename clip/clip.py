@@ -65,7 +65,7 @@ def _transform(n_px):
     ])
 def available_models() -> List[str]:
     return list(_MODELS.keys())
-def load(name: str, device: Union[str, torch.device]="cuda" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
+def load(name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
     if name in _MODELS:
         model_path=_download(_MODELS[name], download_root or os.path.expanduser("~/.cache/clip"))
     elif os.path.isfile(name):
@@ -80,7 +80,7 @@ def load(name: str, device: Union[str, torch.device]="cuda" if torch.cuda.is_ava
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file, map_location="cuda:0")
+            state_dict=torch.load(opened_file, map_location="cpu")
     if not jit:
         model=build_model(state_dict or model.state_dict()).to(device)
         if str(device) == "cpu":
