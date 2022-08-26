@@ -121,7 +121,11 @@ class LayerNorm(nn.LayerNorm):
         orig_type=x.dtype
         ret=super().forward(x.type(torch.float32))
         return ret.type(orig_type)
-class QuickGELU(nn.Module):
+class LayerNorm16(nn.LayerNorm):
+    def forward(self, x: torch.Tensor):
+        orig_type=x.dtype
+        ret=super().forward(x.type(torch.half))
+        return ret.type(orig_type)class QuickGELU(nn.Module):
     def forward(self, x: torch.Tensor):
         return x * torch.sigmoid(1.702 * x)
 class ResidualAttentionBlock(nn.Module):
