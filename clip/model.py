@@ -370,7 +370,7 @@ class CLIP16(nn.Module):
                 heads=vision_heads,
                 output_dim=embed_dim
             )
-        self.transformer=Transformer(
+        self.transformer=Transformer16(
             width=transformer_width,
             layers=transformer_layers,
             heads=transformer_heads,
