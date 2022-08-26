@@ -6,7 +6,7 @@ from typing import Any,Union,List
 from pkg_resources import packaging
 import torch
 from PIL import Image
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
+from torchvision.transforms import Compose,Resize,CenterCrop,ToTensor,Normalize
 from tqdm import tqdm
 from .model import build_model
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
@@ -15,9 +15,9 @@ try:
     BICUBIC=InterpolationMode.BICUBIC
 except ImportError:
     BICUBIC=Image.BICUBIC
-if packaging.version.parse(torch.__version__) < packaging.version.parse("1.7.1"):
+if packaging.version.parse(torch.__version__)<packaging.version.parse("1.7.1"):
     warnings.warn("PyTorch version 1.7.1 or higher is recommended")
-__all__=["available_models", "load", "tokenize"]
+__all__=["available_models","load","tokenize"]
 _tokenizer=_Tokenizer()
 _MODELS={
     "RN50": "https://openaipublic.azureedge.net/clip/models/afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762/RN50.pt",
@@ -30,8 +30,8 @@ _MODELS={
     "ViT-L/14": "https://openaipublic.azureedge.net/clip/models/b8cca3fd41ae0c99ba7e8951adf17d267cdb84cd88be6f7c2e0eca1737a03836/ViT-L-14.pt",
     "ViT-L/14@336px": "https://openaipublic.azureedge.net/clip/models/3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02/ViT-L-14-336px.pt",
 }
-def _download(url: str, root: str):
-    os.makedirs(root, exist_ok=True)
+def _download(url:str,root:str):
+    os.makedirs(root,exist_ok=True)
     filename=os.path.basename(url)
     expected_sha256=url.split("/")[-2]
     download_target=os.path.join(root,filename)
