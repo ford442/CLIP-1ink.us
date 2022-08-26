@@ -65,7 +65,7 @@ def _transform(n_px):
     ])
 def available_models() -> List[str]:
     return list(_MODELS.keys())
-def load(sIze, name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
+def load(fp16bit,sIze, name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
     if name in _MODELS:
         model_path=_download(_MODELS[name], download_root or os.path.expanduser("~/.cache/clip"))
     elif os.path.isfile(name):
@@ -99,9 +99,10 @@ def load(sIze, name: str, device: Union[str, torch.device]="cuda:0" if torch.cud
             for node in graph.findAllNodes("prim::Constant"):
                 if "value" in node.attributeNames() and str(node["value"]).startswith("cuda"):
                     node.copyAttributes(device_node)
-    model.apply(patch_device)
-    patch_device(model.encode_image)
-    patch_device(model.encode_text)
+    if fp16bit==False:
+        model.apply(patch_device)
+        patch_device(model.encode_image)
+        patch_device(model.encode_text)
     if str(device) == "cpu":
         float_holder=torch.jit.trace(lambda: torch.ones([]).float(), example_inputs=[])
         float_input=list(float_holder.graph.findNode("aten::to").inputs())[1]
