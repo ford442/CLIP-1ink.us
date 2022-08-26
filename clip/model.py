@@ -175,7 +175,7 @@ class Transformer(nn.Module):
         self.resblocks=nn.Sequential(*[ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
     def forward(self, x: torch.Tensor):
         return self.resblocks(x)
-class Transformer16(nn.Module):
+class transformer16(nn.Module):
     def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor=None):
         super().__init__()
         self.width=width
