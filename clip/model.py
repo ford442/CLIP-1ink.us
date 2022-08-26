@@ -175,7 +175,7 @@ class Transformer(nn.Module):
         self.resblocks=nn.Sequential(*[ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
     def forward(self, x: torch.Tensor):
         return self.resblocks(x)
-class transformer16(nn.Module):
+class Transformer16(nn.Module):
     def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor=None):
         super().__init__()
         self.width=width
@@ -300,17 +300,6 @@ class CLIP(nn.Module):
         x=self.ln_final(x).type(self.dtype)
         x=x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
         return x
-    
-    def encode_text16(self, text):
-        x=self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
-        x=x + self.positional_embedding.type(self.dtype)
-        x=x.permute(1, 0, 2)  # NLD -> LND
-        x=self.transformer16(x)
-        x=x.permute(1, 0, 2)  # LND -> NLD
-        x=self.ln_final(x).type(self.dtype)
-        x=x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
-        return x
-    
     def forward(self, image, text):
         image_features=self.encode_image(image)
         text_features=self.encode_text(text)
@@ -320,6 +309,106 @@ class CLIP(nn.Module):
         logits_per_image=logit_scale * image_features @ text_features.t()
         logits_per_text=logits_per_image.t()
         return logits_per_image, logits_per_text
+class CLIP16(nn.Module):
+    def __init__(self,
+                 embed_dim: int,
+                 image_resolution: int,
+                 vision_layers: Union[Tuple[int, int, int, int], int],
+                 vision_width: int,
+                 vision_patch_size: int,
+                 context_length: int,
+                 vocab_size: int,
+                 transformer_width: int,
+                 transformer_heads: int,
+                 transformer_layers: int
+                 ):
+        super().__init__()
+        self.context_length=context_length
+        if isinstance(vision_layers, (tuple, list)):
+            vision_heads=vision_width * 32 // 64
+            self.visual=ModifiedResNet(
+                layers=vision_layers,
+                output_dim=embed_dim,
+                heads=vision_heads,
+                input_resolution=image_resolution,
+                width=vision_width
+            )
+        else:
+            vision_heads=vision_width // 64
+            self.visual=VisionTransformer16(
+                input_resolution=image_resolution,
+                patch_size=vision_patch_size,
+                width=vision_width,
+                layers=vision_layers,
+                heads=vision_heads,
+                output_dim=embed_dim
+            )
+        self.transformer=Transformer(
+            width=transformer_width,
+            layers=transformer_layers,
+            heads=transformer_heads,
+            attn_mask=self.build_attention_mask()
+        )
+        self.vocab_size=vocab_size
+        self.token_embedding=nn.Embedding(vocab_size, transformer_width)
+        self.positional_embedding=nn.Parameter(torch.empty(self.context_length, transformer_width))
+        self.ln_final=LayerNorm(transformer_width)
+        self.text_projection=nn.Parameter(torch.empty(transformer_width, embed_dim))
+        self.logit_scale=nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+        self.initialize_parameters()
+    def initialize_parameters(self):
+        nn.init.normal_(self.token_embedding.weight, std=0.02)
+        nn.init.normal_(self.positional_embedding, std=0.01)
+        if isinstance(self.visual, ModifiedResNet):
+            if self.visual.attnpool is not None:
+                std=self.visual.attnpool.c_proj.in_features ** -0.5
+                nn.init.normal_(self.visual.attnpool.q_proj.weight, std=std)
+                nn.init.normal_(self.visual.attnpool.k_proj.weight, std=std)
+                nn.init.normal_(self.visual.attnpool.v_proj.weight, std=std)
+                nn.init.normal_(self.visual.attnpool.c_proj.weight, std=std)
+            for resnet_block in [self.visual.layer1, self.visual.layer2, self.visual.layer3, self.visual.layer4]:
+                for name, param in resnet_block.named_parameters():
+                    if name.endswith("bn3.weight"):
+                        nn.init.zeros_(param)
+        proj_std=(self.transformer.width ** -0.5) * ((2 * self.transformer.layers) ** -0.5)
+        attn_std=self.transformer.width ** -0.5
+        fc_std=(2 * self.transformer.width) ** -0.5
+        for block in self.transformer.resblocks:
+            nn.init.normal_(block.attn.in_proj_weight, std=attn_std)
+            nn.init.normal_(block.attn.out_proj.weight, std=proj_std)
+            nn.init.normal_(block.mlp.c_fc.weight, std=fc_std)
+            nn.init.normal_(block.mlp.c_proj.weight, std=proj_std)
+        if self.text_projection is not None:
+            nn.init.normal_(self.text_projection, std=self.transformer.width ** -0.5)
+    def build_attention_mask(self):
+        mask=torch.empty(self.context_length, self.context_length)
+        mask.fill_(float("-inf"))
+        mask.triu_(1)  # zero out the lower diagonal
+        return mask
+    @property
+    def dtype(self):
+        return self.visual.conv1.weight.dtype
+    def encode_image(self, image):
+        return self.visual(image.type(self.dtype))
+    def encode_text(self, text):
+        x=self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+        x=x + self.positional_embedding.type(self.dtype)
+        x=x.permute(1, 0, 2)  # NLD -> LND
+        x=self.transformer(x)
+        x=x.permute(1, 0, 2)  # LND -> NLD
+        x=self.ln_final(x).type(self.dtype)
+        x=x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+        return x
+    def forward(self, image, text):
+        image_features=self.encode_image(image)
+        text_features=self.encode_text(text)
+        image_features=image_features / image_features.norm(dim=1, keepdim=True)
+        text_features=text_features / text_features.norm(dim=1, keepdim=True)
+        logit_scale=self.logit_scale.exp()
+        logits_per_image=logit_scale * image_features @ text_features.t()
+        logits_per_text=logits_per_image.t()
+        return logits_per_image, logits_per_text
+    
 def convert_weights(model: nn.Module):
     def _convert_weights_to_fp16(l):
         if isinstance(l, (nn.Conv1d, nn.Conv2d, nn.Linear)):
@@ -337,7 +426,7 @@ def convert_weights(model: nn.Module):
                 if attr is not None:
                     attr.data=attr.data.half()
     model.apply(_convert_weights_to_fp16)
-def build_model(state_dict: dict):
+def build_model(fp16bit,state_dict: dict):
     vit="visual.proj" in state_dict
     if vit:
         vision_width=state_dict["visual.conv1.weight"].shape[0]
@@ -359,15 +448,15 @@ def build_model(state_dict: dict):
     transformer_width=state_dict["ln_final.weight"].shape[0]
     transformer_heads=transformer_width // 64
     transformer_layers=len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
-    model=CLIP(
-        embed_dim,
-        image_resolution, vision_layers, vision_width, vision_patch_size,
-        context_length, vocab_size, transformer_width, transformer_heads, transformer_layers
-    )
+    if fp16bit==True:
+        model=CLIP16(embed_dim,image_resolution, vision_layers, vision_width, vision_patch_size,context_length, vocab_size, transformer_width, transformer_heads, transformer_layers)
+    else:    
+        model=CLIP(embed_dim,image_resolution, vision_layers, vision_width, vision_patch_size,
+        context_length, vocab_size, transformer_width, transformer_heads, transformer_layers)
     for key in ["input_resolution", "context_length", "vocab_size"]:
         if key in state_dict:
             del state_dict[key]
-
-    convert_weights(model)
+    if fp16bit==True:
+        convert_weights(model)
     model.load_state_dict(state_dict)
     return model.eval()
