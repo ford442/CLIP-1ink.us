@@ -2,7 +2,7 @@ import hashlib
 import os
 import urllib
 import warnings
-from typing import Any, Union, List
+from typing import Any,Union,List
 from pkg_resources import packaging
 import torch
 from PIL import Image
@@ -34,23 +34,23 @@ def _download(url: str, root: str):
     os.makedirs(root, exist_ok=True)
     filename=os.path.basename(url)
     expected_sha256=url.split("/")[-2]
-    download_target=os.path.join(root, filename)
+    download_target=os.path.join(root,filename)
     if os.path.exists(download_target) and not os.path.isfile(download_target):
         raise RuntimeError(f"{download_target} exists and is not a regular file")
     if os.path.isfile(download_target):
-        if hashlib.sha256(open(download_target, "rb").read()).hexdigest() == expected_sha256:
+        if hashlib.sha256(open(download_target,"rb").read()).hexdigest()==expected_sha256:
             return download_target
         else:
             warnings.warn(f"{download_target} exists, but the SHA256 checksum does not match; re-downloading the file")
-    with urllib.request.urlopen(url) as source, open(download_target, "wb") as output:
-        with tqdm(total=int(source.info().get("Content-Length")), ncols=80, unit='iB', unit_scale=True, unit_divisor=1024) as loop:
+    with urllib.request.urlopen(url) as source,open(download_target,"wb") as output:
+        with tqdm(total=int(source.info().get("Content-Length")),ncols=80,unit='iB',unit_scale=True,unit_divisor=1024) as loop:
             while True:
                 buffer=source.read(8192)
                 if not buffer:
                     break
                 output.write(buffer)
                 loop.update(len(buffer))
-    if hashlib.sha256(open(download_target, "rb").read()).hexdigest() != expected_sha256:
+    if hashlib.sha256(open(download_target,"rb").read()).hexdigest()!=expected_sha256:
         raise RuntimeError(f"Model has been downloaded but the SHA256 checksum does not not match")
     return download_target
 def _convert_image_to_rgb(image):
@@ -61,7 +61,7 @@ def _transform(n_px):
         CenterCrop(n_px),
         _convert_image_to_rgb,
         ToTensor(),
-        Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711)),
+        Normalize((0.48145466,0.4578275,0.40821073),(0.26862954,0.26130258,0.27577711)),
     ])
 def available_models() -> List[str]:
     return list(_MODELS.keys())
@@ -77,21 +77,21 @@ def load(fp16bit,sIze,name):
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file, map_location=lambda storage, loc: storage.cuda(0))
+            state_dict=torch.load(opened_file,map_location=lambda storage,loc:storage.cuda(0))
     if not jit:
         model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
-        if str(device) == "cpu":
+        if str(device)=="cpu":
             model.float()
-        return model, _transform(sIze)
-    return model, _transform(sIze)
-    device_holder=torch.jit.trace(lambda: torch.ones([]).to(torch.device(device)), example_inputs=[])
+        return model,_transform(sIze)
+    return model,_transform(sIze)
+    device_holder=torch.jit.trace(lambda:torch.ones([]).to(torch.device(device)),example_inputs=[])
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1]
     def patch_device(module):
         try:
-            graphs=[module.graph] if hasattr(module, "graph") else []
+            graphs=[module.graph] if hasattr(module,"graph") else []
         except RuntimeError:
             graphs=[]
-        if hasattr(module, "forward1"):
+        if hasattr(module,"forward1"):
             graphs.append(module.forward1.graph)
         for graph in graphs:
             for node in graph.findAllNodes("prim::Constant"):
@@ -101,44 +101,44 @@ def load(fp16bit,sIze,name):
         model.apply(patch_device)
         patch_device(model.encode_image)
         patch_device(model.encode_text)
-    if str(device) == "cpu":
-        float_holder=torch.jit.trace(lambda: torch.ones([]).float(), example_inputs=[])
+    if str(device)=="cpu":
+        float_holder=torch.jit.trace(lambda:torch.ones([]).float(),example_inputs=[])
         float_input=list(float_holder.graph.findNode("aten::to").inputs())[1]
         float_node=float_input.node()
         def patch_float(module):
             try:
-                graphs=[module.graph] if hasattr(module, "graph") else []
+                graphs=[module.graph] if hasattr(module,"graph") else []
             except RuntimeError:
                 graphs=[]
-            if hasattr(module, "forward1"):
+            if hasattr(module,"forward1"):
                 graphs.append(module.forward1.graph)
             for graph in graphs:
                 for node in graph.findAllNodes("aten::to"):
                     inputs=list(node.inputs())
-                    for i in [1, 2]:  # dtype can be the second or third argument to aten::to()
-                        if inputs[i].node()["value"] == 5:
+                    for i in [1, 2]:
+                        if inputs[i].node()["value"]==5:
                             inputs[i].node().copyAttributes(float_node)
         model.apply(patch_float)
         patch_float(model.encode_image)
         patch_float(model.encode_text)
         model.float()
-    return model, _transform(sIze)
-def tokenize(texts: Union[str, List[str]], context_length: int=77, truncate: bool=False) -> Union[torch.IntTensor, torch.LongTensor]:
-    if isinstance(texts, str):
+    return model,_transform(sIze)
+def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
+    if isinstance(texts,str):
         texts=[texts]
     sot_token=_tokenizer.encoder["<|startoftext|>"]
     eot_token=_tokenizer.encoder["<|endoftext|>"]
-    all_tokens=[[sot_token] + _tokenizer.encode(text) + [eot_token] for text in texts]
-    if packaging.version.parse(torch.__version__) < packaging.version.parse("1.8.0"):
-        result=torch.zeros(len(all_tokens), context_length, dtype=torch.long)
+    all_tokens=[[sot_token]+_tokenizer.encode(text)+[eot_token]for text in texts]
+    if packaging.version.parse(torch.__version__)<packaging.version.parse("1.8.0"):
+        result=torch.zeros(len(all_tokens),context_length,dtype=torch.long)
     else:
-        result=torch.zeros(len(all_tokens), context_length, dtype=torch.int)
+        result=torch.zeros(len(all_tokens),context_length,dtype=torch.int)
     for i, tokens in enumerate(all_tokens):
-        if len(tokens) > context_length:
+        if len(tokens)>context_length:
             if truncate:
                 tokens=tokens[:context_length]
                 tokens[-1]=eot_token
             else:
                 raise RuntimeError(f"Input {texts[i]} is too long for context length {context_length}")
-        result[i, :len(tokens)]=torch.tensor(tokens)
+        result[i,:len(tokens)]=torch.tensor(tokens)
     return result
