@@ -166,7 +166,8 @@ class ResidualAttentionBlock16(nn.Module):
     def forward(self, x: torch.Tensor):
         x=x + self.attention(self.ln_1(x))
         x=x + self.mlp(self.ln_2(x))
-        return xclass Transformer(nn.Module):
+        return x
+class Transformer(nn.Module):
     def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor=None):
         super().__init__()
         self.width=width
