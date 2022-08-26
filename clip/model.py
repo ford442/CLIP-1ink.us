@@ -378,7 +378,7 @@ class CLIP16(nn.Module):
         self.vocab_size=vocab_size
         self.token_embedding=nn.Embedding(vocab_size, transformer_width)
         self.positional_embedding=nn.Parameter(torch.empty(self.context_length, transformer_width))
-        self.ln_final=LayerNorm(transformer_width)
+        self.ln_final=LayerNorm16(transformer_width)
         self.text_projection=nn.Parameter(torch.empty(transformer_width, embed_dim))
         self.logit_scale=nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
         self.initialize_parameters()
@@ -434,7 +434,6 @@ class CLIP16(nn.Module):
         logits_per_image=logit_scale * image_features @ text_features.t()
         logits_per_text=logits_per_image.t()
         return logits_per_image, logits_per_text
-    
 def convert_weights(model: nn.Module):
     def _convert_weights_to_fp16(l):
         if isinstance(l, (nn.Conv1d, nn.Conv2d, nn.Linear)):
