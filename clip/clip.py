@@ -67,6 +67,7 @@ def available_models() -> List[str]:
     return list(_MODELS.keys())
 def load(fp16bit,sIze,name):
     device=torch.device("cuda:0")
+    jit=False
     model_path=name
     with open(model_path, 'rb') as opened_file:
         try:
