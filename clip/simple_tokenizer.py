@@ -6,11 +6,9 @@ from functools import lru_cache
 import ftfy
 import regex as re
 
-
 @lru_cache(maxsize=None)
 def default_bpe():
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), "bpe_simple_vocab_16e6.txt.gz")
-
 
 @lru_cache(maxsize=None)
 def bytes_to_unicode():
@@ -49,7 +47,6 @@ def whitespace_clean(text):
     text = text.strip()
     return text
 
-
 class SimpleTokenizer(object):
     def __init__(self, bpe_path: str = default_bpe()):
         self.byte_encoder = bytes_to_unicode()
@@ -73,10 +70,8 @@ class SimpleTokenizer(object):
             return self.cache[token]
         word = tuple(token[:-1]) + ( token[-1] + '</w>',)
         pairs = get_pairs(word)
-
         if not pairs:
             return token+'</w>'
-
         while True:
             bigram = min(pairs, key = lambda pair: self.bpe_ranks.get(pair, float('inf')))
             if bigram not in self.bpe_ranks:
@@ -92,7 +87,6 @@ class SimpleTokenizer(object):
                 except:
                     new_word.extend(word[i:])
                     break
-
                 if word[i] == first and i < len(word)-1 and word[i+1] == second:
                     new_word.append(first+second)
                     i += 2
@@ -108,7 +102,6 @@ class SimpleTokenizer(object):
         word = ' '.join(word)
         self.cache[token] = word
         return word
-
     def encode(self, text):
         bpe_tokens = []
         text = whitespace_clean(basic_clean(text)).lower()
@@ -116,7 +109,6 @@ class SimpleTokenizer(object):
             token = ''.join(self.byte_encoder[b] for b in token.encode('utf-8'))
             bpe_tokens.extend(self.encoder[bpe_token] for bpe_token in self.bpe(token).split(' '))
         return bpe_tokens
-
     def decode(self, tokens):
         text = ''.join([self.decoder[token] for token in tokens])
         text = bytearray([self.byte_decoder[c] for c in text]).decode('utf-8', errors="replace").replace('</w>', ' ')
