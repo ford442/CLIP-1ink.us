@@ -76,7 +76,7 @@ def load(fp16bit,sIze,name):
         except RuntimeError:
             state_dict=torch.load(opened_file, map_location="cpu")
     if not jit:
-        model=build_model(state_dict or model.state_dict()).to("cuda:0")
+        model=build_model(fp16bit,state_dict or model.state_dict()).to("cuda:0")
         if str(device) == "cpu":
             model.float()
         return model, _transform(sIze)
