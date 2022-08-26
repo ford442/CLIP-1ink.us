@@ -147,7 +147,33 @@ class ResidualAttentionBlock(nn.Module):
         x=x + self.attention(self.ln_1(x))
         x=x + self.mlp(self.ln_2(x))
         return x
-class Transformer(nn.Module):
+class ResidualAttentionBlock16(nn.Module):
+    def __init__(self, d_model: int, n_head: int, attn_mask: torch.Tensor=None):
+        super().__init__()
+        self.attn=nn.MultiheadAttention(d_model, n_head)
+        self.ln_1=LayerNorm(d_model)
+        self.mlp=nn.Sequential(OrderedDict([
+            ("c_fc", nn.Linear(d_model, d_model * 4)),
+            ("gelu", QuickGELU()),
+            ("c_proj", nn.Linear(d_model * 4, d_model))
+        ]))
+        self.ln_2=LayerNorm16(d_model)
+        self.attn_mask=attn_mask
+    def attention(self, x: torch.Tensor):
+        self.attn_mask=self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
+        return self.attn(x, x, x, need_weights=False, attn_mask=self.attn_mask)[0]
+    def forward(self, x: torch.Tensor):
+        x=x + self.attention(self.ln_1(x))
+        x=x + self.mlp(self.ln_2(x))
+        return xclass Transformer(nn.Module):
+    def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor=None):
+        super().__init__()
+        self.width=width
+        self.layers=layers
+        self.resblocks=nn.Sequential(*[ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
+    def forward(self, x: torch.Tensor):
+        return self.resblocks(x)
+class Transformer16(nn.Module):
     def __init__(self, width: int, layers: int, heads: int, attn_mask: torch.Tensor=None):
         super().__init__()
         self.width=width
@@ -272,6 +298,17 @@ class CLIP(nn.Module):
         x=self.ln_final(x).type(self.dtype)
         x=x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
         return x
+    
+    def encode_text16(self, text):
+        x=self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+        x=x + self.positional_embedding.type(self.dtype)
+        x=x.permute(1, 0, 2)  # NLD -> LND
+        x=self.transformer16(x)
+        x=x.permute(1, 0, 2)  # LND -> NLD
+        x=self.ln_final(x).type(self.dtype)
+        x=x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+        return x
+    
     def forward(self, image, text):
         image_features=self.encode_image(image)
         text_features=self.encode_text(text)
