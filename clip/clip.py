@@ -65,24 +65,17 @@ def _transform(n_px):
     ])
 def available_models() -> List[str]:
     return list(_MODELS.keys())
-def load(fp16bit,sIze, name: str, device: Union[str, torch.device]="cuda:0" if torch.cuda.is_available() else "cpu", jit: bool=False, download_root: str=None):
-    if name in _MODELS:
-        model_path=_download(_MODELS[name], download_root or os.path.expanduser("~/.cache/clip"))
-    elif os.path.isfile(name):
-        model_path=name
-    else:
-        raise RuntimeError(f"Model {name} not found; available models={available_models()}")
+def load(fp16bit,sIze,name):
+    device=torch.device("cuda:0")
+    model_path=name
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cpu").eval()
+            model=torch.jit.load(opened_file, map_location='cpu').eval()
             state_dict=None
         except RuntimeError:
-            if jit:
-                warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
-                jit=False
             state_dict=torch.load(opened_file, map_location="cpu")
     if not jit:
-        model=build_model(state_dict or model.state_dict()).to(device)
+        model=build_model(state_dict or model.state_dict()).to("cuda:0")
         if str(device) == "cpu":
             model.float()
         return model, _transform(sIze)
