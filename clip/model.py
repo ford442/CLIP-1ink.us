@@ -8,7 +8,6 @@ from torch import nn
 
 class Bottleneck(nn.Module):
     expansion=4
-
     def __init__(self, inplanes, planes, stride=1):
         super().__init__()
         self.conv1=nn.Conv2d(inplanes, planes, 1, bias=False)
@@ -219,9 +218,9 @@ class VisionTransformer16(nn.Module):
         scale=width ** -0.5
         self.class_embedding=nn.Parameter(scale * torch.randn(width))
         self.positional_embedding=nn.Parameter(scale * torch.randn((input_resolution // patch_size) ** 2 + 1, width))
-        self.ln_pre=LayerNorm(width)
+        self.ln_pre=LayerNorm16(width)
         self.transformer=Transformer16(width, layers, heads)
-        self.ln_post=LayerNorm(width)
+        self.ln_post=LayerNorm16(width)
         self.proj=nn.Parameter(scale * torch.randn(width, output_dim))
     def forward(self, x: torch.Tensor):
         x=self.conv1(x)  # shape=[*, width, grid, grid]
