@@ -70,7 +70,7 @@ def load(fp16bit,sIze,name):
     jit=False
     model_path=name
     with open(model_path, 'rb') as opened_file:
-        state_dict=torch.load(opened_file,map_location=torch.device("cuda:0"))
+        state_dict=torch.load(opened_file,map_location="cuda:0")
     if not jit:
         model=build_model(fp16bit,state_dict or model.state_dict()).to("cuda:0")
         if str(device) == "cpu":
