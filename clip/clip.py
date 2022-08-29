@@ -70,14 +70,14 @@ def load(fp16bit,sIze,name):
     jit=False
     model_path=name
     with open(model_path, 'rb') as opened_file:
-        try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
-            state_dict=None
-        except RuntimeError:
-            if jit:
-                warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
-                jit=False
-            state_dict=torch.load(opened_file,map_location=torch.device('cpu'))
+       # try:
+       #     model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
+       #     state_dict=None
+      # except RuntimeError:
+         #   if jit:
+         #       warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
+         #       jit=False
+        #    state_dict=torch.load(opened_file,map_location=torch.device('cpu'))
     if not jit:
         model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
         if str(device)=="cpu":
