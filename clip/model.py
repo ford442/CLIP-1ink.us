@@ -463,8 +463,7 @@ def build_model(fp16bit,state_dict: dict):
     if fp16bit==True:
         model=CLIP16(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
     else:    
-        model=CLIP(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,
-        context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
+        model=CLIP(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
     for key in ["input_resolution","context_length","vocab_size"]:
         if key in state_dict:
             del state_dict[key]
