@@ -469,5 +469,5 @@ def build_model(fp16bit,state_dict: dict):
             del state_dict[key]
     if fp16bit==True:
         convert_weights(model)
-    model.load_state_dict(state_dict))
+    model.load_state_dict(state_dict)
     return model.eval()
