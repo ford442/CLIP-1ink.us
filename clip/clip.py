@@ -79,9 +79,9 @@ def load(fp16bit,sIze,name):
          #       jit=False
         #    state_dict=torch.load(opened_file,map_location=torch.device('cpu'))
     #if not jit:
-    model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
-    if str(device)=="cpu":
-        model.float()
+        model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
+        if str(device)=="cpu":
+            model.float()
     return model,_transform(sIze)
     return model,_transform(sIze)
     device_holder=torch.jit.trace(lambda:torch.ones([]).to(torch.device(device)),example_inputs=[])
