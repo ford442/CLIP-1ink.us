@@ -2,7 +2,7 @@ import os
 from distutils.extension import Extension;
 import pkg_resources
 from setuptools import setup, find_packages
-extensions = [Extension('clip',['clip/clip.py']),('model',['clip/model.py'])];
+extensions = [Extension('clip',['clip/clip.py'])];
 from Cython.Build import cythonize
 
 setup(
