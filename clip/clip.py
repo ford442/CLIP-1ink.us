@@ -77,7 +77,7 @@ def load(fp16bit,sIze,name):
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file,map_location=lambda storage,loc:storage.cuda(0))
+            state_dict=torch.load(opened_file,map_location=torch.device("cpu"))
     if not jit:
         model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
         if str(device)=="cpu":
