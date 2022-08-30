@@ -71,7 +71,7 @@ def load(fp16bit,sIze,name):
     model_path=name
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device if jit else "cuda:0").eval()
+            model=torch.jit.load(opened_file, map_location=torch.device("cpu")).eval()
             state_dict=None
         except RuntimeError:
             if jit:
