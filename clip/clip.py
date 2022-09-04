@@ -71,7 +71,7 @@ def load(fp16bit,sIze,name):
     model_path=name
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=torch.device("cpu")).eval()
+            model=torch.jit.load(opened_file, map_location=torch.device("cpu"))
             state_dict=None
         except RuntimeError:
             if jit:
@@ -79,7 +79,7 @@ def load(fp16bit,sIze,name):
                 jit=False
             state_dict=torch.load(opened_file,map_location=torch.device("cpu"))
     if not jit:
-        model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
+        model=build_model(fp16bit,state_dict or model.state_dict())
         if str(device)=="cpu":
             model.float()
         return model,_transform(sIze)
