@@ -10,6 +10,9 @@ from torchvision.transforms import Compose,Resize,CenterCrop,ToTensor,Normalize
 from tqdm import tqdm
 from .model import build_model
 from .simple_tokenizer import SimpleTokenizer as _Tokenizer
+from functools import lru_cache as cache;
+from methodtools import lru_cache as class_cache;
+
 try:
     from torchvision.transforms import InterpolationMode
     BICUBIC=InterpolationMode.BICUBIC
@@ -79,7 +82,7 @@ def load(fp16bit,sIze,name):
                 jit=False
             state_dict=torch.load(opened_file,map_location=device)
     if not jit:
-        model=build_model(fp16bit,state_dict or model.state_dict()).to(device)
+        model=build_model(fp16bit,state_dict or model.state_dict())
         if str(device)=="cpu":
             model.float()
         return model,_transform(sIze)
@@ -123,6 +126,7 @@ def load(fp16bit,sIze,name):
         patch_float(model.encode_text)
         model.float()
     return model,_transform(sIze)
+@cache(maxsize=40)
 def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
         texts=[texts]
