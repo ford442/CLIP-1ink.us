@@ -2,6 +2,8 @@ from clip.clip import tokenize as _tokenize, load as _load, available_models as 
 import re
 import string
 
+dependencies=["torch", "torchvision", "ftfy", "regex", "tqdm"]
+
 
 # For compatibility (cannot include special characters in function name)
 model_functions={ model: re.sub(f'[{string.punctuation}]', '_', model) for model in _available_models()}
