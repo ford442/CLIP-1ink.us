@@ -69,25 +69,26 @@ def _transform(n_px):
 def available_models() -> List[str]:
     return list(_MODELS.keys())
 def load(fp16bit,sIze,name):
-    device=torch.device("cuda:0")
+    devicec=torch.device("cuda:0")
+    deviceg=torch.device("cuda:0")
     jit=False
     model_path=name
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device)
+            model=torch.jit.load(opened_file, map_location=devicec)
             state_dict=None
         except RuntimeError:
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead")
                 jit=False
-            state_dict=torch.load(opened_file,map_location=device)
+            state_dict=torch.load(opened_file,map_location=devicec)
     if not jit:
         model=build_model(fp16bit,state_dict or model.state_dict())
         if str(device)=="cpu":
             model.float()
         return model,_transform(sIze)
     return model,_transform(sIze)
-    device_holder=torch.jit.trace(lambda:torch.ones([]).to(device),example_inputs=[])
+    device_holder=torch.jit.trace(lambda:torch.ones([]).to(deviceg),example_inputs=[])
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1]
     def patch_device(module):
         try:
@@ -126,6 +127,7 @@ def load(fp16bit,sIze,name):
         patch_float(model.encode_text)
         model.float()
     return model,_transform(sIze)
+
 @cache(maxsize=40)
 def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
