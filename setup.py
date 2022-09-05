@@ -3,7 +3,6 @@ from distutils.extension import Extension;
 import pkg_resources
 from setuptools import setup, find_packages
 extensions = [Extension('clip',['clip/clip.py'])];
-from Cython.Build import cythonize
 
 setup(
     name="clip",
@@ -20,5 +19,4 @@ setup(
     ],
     include_package_data=True,
     extras_require={'dev': ['pytest']},
-    ext_modules = cythonize(extensions,nthreads=4,compiler_directives={'infer_types':True}),
 )
