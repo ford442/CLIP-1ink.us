@@ -471,3 +471,9 @@ def build_model(fp16bit,state_dict: dict):
         convert_weights(model)
     model.load_state_dict(state_dict)
     return model.eval()
+
+def clip_CPU():
+            model.to(torch.device("cpu"),non_blocking=True);
+    
+def clip_CUDA():
+            model.to(torch.device("cuda:0"),non_blocking=True);
