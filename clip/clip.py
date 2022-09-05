@@ -139,7 +139,7 @@ def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=Fals
     if packaging.version.parse(torch.__version__)<packaging.version.parse("1.8.0"):
         result=torch.zeros(len(all_tokens),context_length,dtype=torch.long)
     else:
-        result=torch.zeros(len(all_tokens),context_length,dtype=torch.int)
+        result=torch.zeros(len(all_tokens),context_length,dtype=torch.int64)
     for i, tokens in enumerate(all_tokens):
         if len(tokens)>context_length:
             if truncate:
