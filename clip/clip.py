@@ -127,12 +127,6 @@ def load(name: str, device: Union[str, torch.device]="cuda" if torch.cuda.is_ava
         model.float()
     return model, _transform(model.input_resolution.item())
 
-def clip_CPU():
-    model.to(torch.device("cpu"),non_blocking=True);
-    
-def clip_CUDA():
-    model.to(torch.device("cuda:0"),non_blocking=True);
-
 def tokenize(texts: Union[str, List[str]], context_length: int=77, truncate: bool=False) -> Union[torch.IntTensor, torch.LongTensor]:
     if isinstance(texts, str):
         texts=[texts]
