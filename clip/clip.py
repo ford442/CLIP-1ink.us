@@ -122,13 +122,16 @@ def load(fp16bit,sIze,name):
         patch_float(model.encode_image)
         patch_float(model.encode_text)
         model.float()
+        
+        def clip_CPU():
+            model.to(torch.device("cpu"),non_blocking=True);
+    
+        def clip_CUDA():
+            model.to(torch.device("cuda:0"),non_blocking=True);
+        
     return model,_transform(sIze)
 
-def clip_CPU():
-    model.to(torch.device("cpu"),non_blocking=True);
-    
-def clip_CUDA():
-    model.to(torch.device("cuda:0"),non_blocking=True);
+
 
 def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
