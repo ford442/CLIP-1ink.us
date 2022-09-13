@@ -66,17 +66,16 @@ def available_models() -> List[str]:
 def load(fp16bit,sIze,name):
     device=torch.device("cuda:0");
     device_CPU=torch.device("cpu");
-    jit=False;
     model_path=name;
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=device_CPU);
+            model=torch.jit.load(opened_file, map_location=lambda storage, loc: storage);
             state_dict=None;
         except RuntimeError:
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead");
                 jit=False;
-            state_dict=torch.load(opened_file,map_location=device_CPU);
+            state_dict=torch.load(opened_file,map_location=lambda storage, loc: storage);
     if not jit:
         model=build_model(fp16bit,state_dict or model.state_dict());
         if str(device)=="cpu":
