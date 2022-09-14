@@ -82,7 +82,6 @@ def load(fp16bit,sIze,name):
         if str(device)=="cpu":
             model.float();
         return model,_transform(sIze);
-    return model,_transform(sIze);
     device_holder=torch.jit.trace(lambda:torch.ones([]).to(torch.device(device)),example_inputs=[]);
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1];
     def patch_device(module):
