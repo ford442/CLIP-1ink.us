@@ -68,6 +68,8 @@ def load(fp16bit,sIze,name):
     device_CPU=torch.device("cpu");
     model_path=name;
     jit=True;
+    if fp16bit==True:
+        jit=False;
     with open(model_path, 'rb') as opened_file:
         try:
             model=torch.jit.load(opened_file, map_location=None);
