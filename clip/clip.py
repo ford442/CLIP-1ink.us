@@ -84,9 +84,9 @@ def load(fp16bit,sIze,name,tjit=False):
             return model,_transform(model.visual.input_resolution);
     if tjit==False:
         with open(model_path, 'rb') as opened_file:
-        state_dict=torch.load(opened_file,map_location=None);
-        model=build_model(fp16bit,state_dict or model.state_dict());
-        return model,_transform(model.visual.input_resolution);
+            state_dict=torch.load(opened_file,map_location=None);
+            model=build_model(fp16bit,state_dict or model.state_dict());
+            return model,_transform(model.visual.input_resolution);
     
     device_holder=torch.jit.trace(lambda:torch.ones([]).to(torch.device(device)),example_inputs=[]);
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1];
