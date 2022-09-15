@@ -123,16 +123,16 @@ def load(fp16bit,sIze,name,tjit=False):
         model.float();
     return model,_transform(sIze);
 
-def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
+def tokenize(typ='int',texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
         texts=[texts];
     sot_token=_tokenizer.encoder["<|startoftext|>"];
     eot_token=_tokenizer.encoder["<|endoftext|>"];
     all_tokens=[[sot_token]+_tokenizer.encode(text)+[eot_token]for text in texts];
-    if packaging.version.parse(torch.__version__)<packaging.version.parse("1.8.0"):
-        result=torch.zeros(len(all_tokens),context_length,dtype=torch.long);
-    else:
+    if typ=='int':
         result=torch.zeros(len(all_tokens),context_length,dtype=torch.int);
+    elif typ=='long':
+        result=torch.zeros(len(all_tokens),context_length,dtype=torch.long);
     for i, tokens in enumerate(all_tokens):
         if len(tokens)>context_length:
             if truncate:
