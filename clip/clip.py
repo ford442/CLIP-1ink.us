@@ -64,9 +64,10 @@ def _transform(n_px):
 def available_models() -> List[str]:
     return list(_MODELS.keys());
 def load(fp16bit,sIze,name):
-    device=torch.device("cuda:0");
+    device="cuda:0";
     device_CPU=torch.device("cpu");
     model_path=name;
+    jit=False;
     with open(model_path, 'rb') as opened_file:
         try:
             model=torch.jit.load(opened_file, map_location=None);
