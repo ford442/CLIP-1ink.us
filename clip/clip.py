@@ -123,7 +123,7 @@ def load(fp16bit,sIze,name,tjit=False):
         model.float();
     return model,_transform(sIze);
 
-def tokenize(typ='int',texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
+def tokenize(texts:Union[str,List[str]],typ='int',context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
         texts=[texts];
     sot_token=_tokenizer.encoder["<|startoftext|>"];
