@@ -34,6 +34,7 @@ class Bottleneck(nn.Module):
         out+=identity
         out=self.relu3(out)
         return out
+    
 class AttentionPool2d(nn.Module):
     def __init__(self,spacial_dim: int,embed_dim: int,num_heads: int,output_dim: int=None):
         super().__init__()
@@ -67,6 +68,7 @@ class AttentionPool2d(nn.Module):
             need_weights=False
         )
         return x[0]
+    
 class ModifiedResNet(nn.Module):
     def __init__(self,layers,output_dim,heads,input_resolution=224,width=64):
         super().__init__()
@@ -110,24 +112,29 @@ class ModifiedResNet(nn.Module):
         x=self.layer4(x)
         x=self.attnpool(x)
         return x
+    
 class LayerNorm(nn.LayerNorm):
     def forward(self,x:torch.Tensor):
         orig_type=x.dtype
         ret=super().forward(x.type(torch.float32))
         return ret.type(orig_type)
+    
 class LayerNorm16(nn.LayerNorm):
     def forward(self,x:torch.Tensor):
         orig_type=x.dtype
         ret=super().forward(x.type(torch.float16))
         return ret.type(orig_type)
+    
 class LayerNorm64(nn.LayerNorm):
     def forward(self,x:torch.Tensor):
         orig_type=x.dtype
         ret=super().forward(x.type(torch.float64))
         return ret.type(orig_type)
+    
 class QuickGELU(nn.Module):
     def forward(self,x:torch.Tensor):
         return x*torch.sigmoid(1.702*x)
+    
 class ResidualAttentionBlock(nn.Module):
     def __init__(self,d_model:int,n_head:int,attn_mask:torch.Tensor=None):
         super().__init__()
@@ -143,6 +150,7 @@ class ResidualAttentionBlock(nn.Module):
         x=x+self.attention(self.ln_1(x))
         x=x+self.mlp(self.ln_2(x))
         return x
+    
 class ResidualAttentionBlock16(nn.Module):
     def __init__(self,d_model:int,n_head:int,attn_mask:torch.Tensor=None):
         super().__init__()
@@ -158,6 +166,7 @@ class ResidualAttentionBlock16(nn.Module):
         x=x+self.attention(self.ln_1(x))
         x=x+self.mlp(self.ln_2(x))
         return x
+    
 class ResidualAttentionBlock64(nn.Module):
     def __init__(self,d_model:int,n_head:int,attn_mask:torch.Tensor=None):
         super().__init__()
@@ -173,6 +182,7 @@ class ResidualAttentionBlock64(nn.Module):
         x=x+self.attention(self.ln_1(x))
         x=x+self.mlp(self.ln_2(x))
         return x
+    
 class Transformer(nn.Module):
     def __init__(self,width:int,layers:int,heads:int,attn_mask:torch.Tensor=None):
         super().__init__()
@@ -197,6 +207,7 @@ class Transformer64(nn.Module):
         self.resblocks=nn.Sequential(*[ResidualAttentionBlock64(width,heads,attn_mask) for _ in range(layers)])
     def forward(self,x:torch.Tensor):
         return self.resblocks(x)
+    
 class VisionTransformer(nn.Module):
     def __init__(self,input_resolution:int,patch_size:int,width:int,layers:int,heads:int,output_dim:int):
         super().__init__()
@@ -281,7 +292,7 @@ class VisionTransformer64(nn.Module):
             x=x @ self.proj
         return x
     
-    class CLIP(nn.Module):
+class CLIP(nn.Module):
     def __init__(self,
                  embed_dim:int,
                  image_resolution:int,
@@ -380,6 +391,7 @@ class VisionTransformer64(nn.Module):
         logits_per_image=logit_scale*image_features @ text_features.t()
         logits_per_text=logits_per_image.t()
         return logits_per_image,logits_per_text
+    
 class CLIP16(nn.Module):
     def __init__(self,
                  embed_dim:int,
@@ -597,7 +609,26 @@ def convert_weights(model:nn.Module):
                 if attr is not None:
                     attr.data=attr.data.half()
     model.apply(_convert_weights_to_fp16)
-def build_model(fp16bit,state_dict: dict):
+    
+def convert_weights64(model:nn.Module):
+    def _convert_weights_to_fp64(l):
+        if isinstance(l,(nn.Conv1d,nn.Conv2d,nn.Linear)):
+            l.weight.data=l.weight.data.to(torch.float64))
+            if l.bias is not None:
+                l.bias.data=l.bias.data.to(torch.float64))
+        if isinstance(l,nn.MultiheadAttention):
+            for attr in [*[f"{s}_proj_weight" for s in ["in","q","k","v"]],"in_proj_bias","bias_k","bias_v"]:
+                tensor=getattr(l,attr)
+                if tensor is not None:
+                    tensor.data=tensor.data.to(torch.float64))
+        for name in ["text_projection","proj"]:
+            if hasattr(l,name):
+                attr=getattr(l,name)
+                if attr is not None:
+                    attr.data=attr.data.to(torch.float64))
+    model.apply(_convert_weights_to_fp64)
+
+def build_model(fp16bit,fp64bit,state_dict: dict):
     vit="visual.proj" in state_dict
     if vit:
         vision_width=state_dict["visual.conv1.weight"].shape[0]
@@ -630,5 +661,7 @@ def build_model(fp16bit,state_dict: dict):
             del state_dict[key]
     if fp16bit==True:
         convert_weights(model)
+    if fp64bit==True:
+        convert_weights64(model)
     model.load_state_dict(state_dict)
     return model.eval()
