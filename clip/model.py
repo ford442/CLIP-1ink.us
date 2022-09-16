@@ -613,19 +613,19 @@ def convert_weights(model:nn.Module):
 def convert_weights64(model:nn.Module):
     def _convert_weights_to_fp64(l):
         if isinstance(l,(nn.Conv1d,nn.Conv2d,nn.Linear)):
-            l.weight.data=l.weight.data.to(torch.float64))
+            l.weight.data=l.weight.data.to(torch.float64)
             if l.bias is not None:
-                l.bias.data=l.bias.data.to(torch.float64))
+                l.bias.data=l.bias.data.to(torch.float64)
         if isinstance(l,nn.MultiheadAttention):
             for attr in [*[f"{s}_proj_weight" for s in ["in","q","k","v"]],"in_proj_bias","bias_k","bias_v"]:
                 tensor=getattr(l,attr)
                 if tensor is not None:
-                    tensor.data=tensor.data.to(torch.float64))
+                    tensor.data=tensor.data.to(torch.float64)
         for name in ["text_projection","proj"]:
             if hasattr(l,name):
                 attr=getattr(l,name)
                 if attr is not None:
-                    attr.data=attr.data.to(torch.float64))
+                    attr.data=attr.data.to(torch.float64)
     model.apply(_convert_weights_to_fp64)
 
 def build_model(fp16bit,fp64bit,state_dict: dict):
