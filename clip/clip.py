@@ -78,7 +78,7 @@ def load(fp16bit,fp64bit,sIze,name,tjit=False):
                 jit=False;
             state_dict=torch.load(opened_file,map_location=None);
     if not jit:
-        model=build_model(fp16bit,state_dict or model.state_dict());
+        model=build_model(fp16bit,fp64bit,state_dict or model.state_dict());
         if str(device)=="cpu":
             model.float();
         return model,_transform(sIze);
