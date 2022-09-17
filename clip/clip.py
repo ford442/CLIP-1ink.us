@@ -65,17 +65,18 @@ def available_models() -> List[str]:
     return list(_MODELS.keys());
 def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
     device="cuda:0";
+    tdevice=torch.device("cuda:0");
     model_path=name;
     jit=tjit;
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=None);
+            model=torch.jit.load(opened_file, map_location=tdevice);
             state_dict=None;
         except RuntimeError:
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead");
                 jit=False;
-            state_dict=torch.load(opened_file,map_location=None);
+            state_dict=torch.load(opened_file,map_location=tdevice);
     if not jit:
         model=build_model(fp16bit,fp64bit,state_dict or model.state_dict());
         if str(device)=="cpu":
@@ -95,9 +96,9 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
             for node in graph.findAllNodes("prim::Constant"):
                 if "value" in node.attributeNames() and str(node["value"]).startswith("cuda"):
                     node.copyAttributes(device_node);
-        model.apply(patch_device);
-        patch_device(model.encode_image);
-        patch_device(model.encode_text);      
+    model.apply(patch_device);
+    patch_device(model.encode_image);
+    patch_device(model.encode_text);      
     if str(device)=="cpu":
         float_holder=torch.jit.trace(lambda:torch.ones([]).float(),example_inputs=[]);
         float_input=list(float_holder.graph.findNode("aten::to").inputs())[1];
