@@ -63,9 +63,8 @@ def _transform(n_px):
         Normalize((0.48145466,0.4578275,0.40821073),(0.26862954,0.26130258,0.27577711)),]);
 def available_models() -> List[str]:
     return list(_MODELS.keys());
-def load(fp16bit,fp64bit,sIze,name,tjit=False):
+def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
     device="cuda:0";
-    device_CPU=torch.device("cpu");
     model_path=name;
     jit=tjit;
     with open(model_path, 'rb') as opened_file:
@@ -96,10 +95,9 @@ def load(fp16bit,fp64bit,sIze,name,tjit=False):
             for node in graph.findAllNodes("prim::Constant"):
                 if "value" in node.attributeNames() and str(node["value"]).startswith("cuda"):
                     node.copyAttributes(device_node);
-    if fp16bit==False:
         model.apply(patch_device);
         patch_device(model.encode_image);
-        patch_device(model.encode_text);
+        patch_device(model.encode_text);      
     if str(device)=="cpu":
         float_holder=torch.jit.trace(lambda:torch.ones([]).float(),example_inputs=[]);
         float_input=list(float_holder.graph.findNode("aten::to").inputs())[1];
@@ -121,6 +119,12 @@ def load(fp16bit,fp64bit,sIze,name,tjit=False):
         patch_float(model.encode_image);
         patch_float(model.encode_text);
         model.float();
+    if fp16bit==True:  
+        model.to(torch.float16);
+    if fp32bit==True:
+        model.to(torch.float32);
+    if fp64bit==True:
+        model.to(torch.float64);
     return model,_transform(sIze);
 
 def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
