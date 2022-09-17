@@ -70,13 +70,13 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
     jit=tjit;
     with open(model_path, 'rb') as opened_file:
         try:
-            model=torch.jit.load(opened_file, map_location=tdevice);
+            model=torch.jit.load(opened_file);
             state_dict=None;
         except RuntimeError:
             if jit:
                 warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead");
                 jit=False;
-            state_dict=torch.load(opened_file,map_location=tdevice);
+            state_dict=torch.load(opened_file);
     if not jit:
         model=build_model(fp16bit,fp64bit,state_dict or model.state_dict());
         if str(device)=="cpu":
