@@ -659,8 +659,7 @@ def build_model(fp16bit,fp64bit,state_dict: dict):
     for key in ["input_resolution","context_length","vocab_size"]:
         if key in state_dict:
             del state_dict[key]
-    if fp16bit==True:
-        convert_weights(model)
+    convert_weights(model)
     if fp64bit==True:
         convert_weights64(model)
     model.load_state_dict(state_dict)
