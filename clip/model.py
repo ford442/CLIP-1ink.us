@@ -661,5 +661,5 @@ def build_model(fp16bit,fp64bit,state_dict: dict):
     for key in ["input_resolution","context_length","vocab_size"]:
         if key in state_dict:
             del state_dict[key]
-    model.load_state_dict(state_dict)
-    return model.eval()
+    model.load_state_dict(state_dict,map_location=None,strict=False)
+    return model
