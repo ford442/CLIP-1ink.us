@@ -572,7 +572,7 @@ class CLIP64(nn.Module):
     def dtype(self):
         return self.visual.conv1.weight.dtype
     def encode_image(self,image):
-        return self.visual(image.to(torch.float64))
+        return self.visual(image).to(torch.float64)
     def encode_text(self,text):
         x=self.token_embedding(text).type(self.dtype)
         x=x + self.positional_embedding.type(self.dtype)
@@ -651,12 +651,12 @@ def build_model(fp16bit,fp64bit,state_dict: dict):
     transformer_heads=transformer_width // 64
     transformer_layers=len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
     if fp64bit==True:
-        convert_weights64(model)
         model=CLIP64(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
+        convert_weights64(model)
     elif fp16bit==True:
-        convert_weights(model)
         model=CLIP16(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
-    else:    
+        convert_weights(model)
+    else:
         model=CLIP(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
     for key in ["input_resolution","context_length","vocab_size"]:
         if key in state_dict:
