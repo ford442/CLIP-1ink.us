@@ -117,19 +117,19 @@ class LayerNorm(nn.LayerNorm):
     def forward(self,x:torch.Tensor):
         orig_type=x.dtype
         ret=super().forward(x.type(torch.float))
-        return ret.type(orig_type)
+        return ret.to(torch.float32)
     
 class LayerNorm16(nn.LayerNorm):
     def forward(self,x:torch.Tensor):
         orig_type=x.dtype
-        ret=super().forward(x.type(torch.half))
-        return ret.type(orig_type)
+        ret=super().forward(x.type(torch.float))
+        return ret.to(torch.float16)
     
 class LayerNorm64(nn.LayerNorm):
     def forward(self,x:torch.Tensor):
         orig_type=x.dtype
-        ret=super().forward(x.type(torch.float64))
-        return ret.type(orig_type)
+        ret=super().forward(x.type(torch.float))
+        return ret.to(torch.float64)
     
 class QuickGELU(nn.Module):
     def forward(self,x:torch.Tensor):
@@ -572,7 +572,7 @@ class CLIP64(nn.Module):
     def dtype(self):
         return self.visual.conv1.weight.dtype
     def encode_image(self,image):
-        return self.visual(image.type(self.dtype))
+        return self.visual(image.to(torch.float64))
     def encode_text(self,text):
         x=self.token_embedding(text).type(self.dtype)
         x=x + self.positional_embedding.type(self.dtype)
@@ -659,8 +659,9 @@ def build_model(fp16bit,fp64bit,state_dict: dict):
     for key in ["input_resolution","context_length","vocab_size"]:
         if key in state_dict:
             del state_dict[key]
-    convert_weights(model)
     if fp64bit==True:
         convert_weights64(model)
+    elif fp16bit==True:
+        convert_weights(model)
     model.load_state_dict(state_dict)
     return model.eval()
