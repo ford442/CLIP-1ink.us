@@ -650,18 +650,16 @@ def build_model(fp16bit,fp64bit,state_dict: dict):
     transformer_width=state_dict["ln_final.weight"].shape[0]
     transformer_heads=transformer_width // 64
     transformer_layers=len(set(k.split(".")[2] for k in state_dict if k.startswith(f"transformer.resblocks")))
-    if fp16bit==True:
-        model=CLIP16(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
-    elif fp64bit==True:
+    if fp64bit==True:
+        convert_weights64(model)
         model=CLIP64(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
+    elif fp16bit==True:
+        convert_weights(model)
+        model=CLIP16(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
     else:    
         model=CLIP(embed_dim,image_resolution,vision_layers,vision_width,vision_patch_size,context_length,vocab_size,transformer_width,transformer_heads,transformer_layers)
     for key in ["input_resolution","context_length","vocab_size"]:
         if key in state_dict:
             del state_dict[key]
-    if fp64bit==True:
-        convert_weights64(model)
-    elif fp16bit==True:
-        convert_weights(model)
     model.load_state_dict(state_dict)
     return model.eval()
