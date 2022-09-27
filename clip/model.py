@@ -216,7 +216,7 @@ class VisionTransformer(nn.Module):
         self.conv1=nn.Conv2d(in_channels=3,out_channels=width,kernel_size=patch_size,stride=patch_size,bias=False)
         scale=width ** -0.5
         self.class_embedding=nn.Parameter(scale*torch.randn(width))
-        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width),device=torch.device("cuda:0"))
+        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width,device=torch.device("cuda:0")))
         self.ln_pre=LayerNorm(width)
         self.transformer=Transformer(width,layers,heads)
         self.ln_post=LayerNorm(width)
