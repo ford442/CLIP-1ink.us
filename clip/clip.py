@@ -103,7 +103,7 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
     patch_device(model.encode_image);
     patch_device(model.encode_text);      
     if str(device)=="cpu":
-        float_holder=torch.jit.trace(lambda:torch.ones([]).float(),example_inputs=[]);
+        float_holder=torch.jit.trace(lambda:torch.ones([],device=tdevice).float(),example_inputs=[]);
         float_input=list(float_holder.graph.findNode("aten::to").inputs())[1];
         float_node=float_input.node();
         def patch_float(module):
