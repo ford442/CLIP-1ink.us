@@ -38,7 +38,7 @@ class Bottleneck(nn.Module):
 class AttentionPool2d(nn.Module):
     def __init__(self,spacial_dim: int,embed_dim: int,num_heads: int,output_dim: int=None):
         super().__init__()
-        self.positional_embedding=nn.Parameter(torch.randn(spacial_dim**2+1,embed_dim)/embed_dim**0.5)
+        self.positional_embedding=nn.Parameter(torch.randn(spacial_dim**2+1,embed_dim)/embed_dim**0.5,device=torch.device("cuda:0"))
         self.k_proj=nn.Linear(embed_dim,embed_dim)
         self.q_proj=nn.Linear(embed_dim,embed_dim)
         self.v_proj=nn.Linear(embed_dim,embed_dim)
@@ -216,16 +216,16 @@ class VisionTransformer(nn.Module):
         self.conv1=nn.Conv2d(in_channels=3,out_channels=width,kernel_size=patch_size,stride=patch_size,bias=False)
         scale=width ** -0.5
         self.class_embedding=nn.Parameter(scale*torch.randn(width))
-        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width))
+        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width),device=torch.device("cuda:0"))
         self.ln_pre=LayerNorm(width)
         self.transformer=Transformer(width,layers,heads)
         self.ln_post=LayerNorm(width)
-        self.proj=nn.Parameter(scale*torch.randn(width,output_dim))
+        self.proj=nn.Parameter(scale*torch.randn(width,output_dim,device=torch.device("cuda:0")))
     def forward(self,x: torch.Tensor):
         x=self.conv1(x)
         x=x.reshape(x.shape[0],x.shape[1],-1)
         x=x.permute(0,2,1)
-        x=torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0],1,x.shape[-1],dtype=x.dtype,device=x.device),x],dim=1)
+        x=torch.cat([self.class_embedding.to(x.dtype) + torch.zeros(x.shape[0],1,x.shape[-1],dtype=x.dtype,device=torch.device("cuda:0")),x],dim=1)
         x=x + self.positional_embedding.to(x.dtype)
         x=self.ln_pre(x)
         x=x.permute(1,0,2)
@@ -243,17 +243,17 @@ class VisionTransformer16(nn.Module):
         self.output_dim=output_dim
         self.conv1=nn.Conv2d(in_channels=3,out_channels=width,kernel_size=patch_size,stride=patch_size,bias=False)
         scale=width**-0.5
-        self.class_embedding=nn.Parameter(scale*torch.randn(width))
-        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width))
+        self.class_embedding=nn.Parameter(scale*torch.randn(width,device=torch.device("cuda:0")))
+        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width,device=torch.device("cuda:0")))
         self.ln_pre=LayerNorm16(width)
         self.transformer=Transformer16(width,layers,heads)
         self.ln_post=LayerNorm16(width)
-        self.proj=nn.Parameter(scale*torch.randn(width,output_dim))
+        self.proj=nn.Parameter(scale*torch.randn(width,output_dim,device=torch.device("cuda:0")))
     def forward(self,x:torch.Tensor):
         x=self.conv1(x)
         x=x.reshape(x.shape[0],x.shape[1],-1)
         x=x.permute(0,2,1)
-        x=torch.cat([self.class_embedding.to(x.dtype)+torch.zeros(x.shape[0],1,x.shape[-1],dtype=x.dtype,device=x.device),x],dim=1)
+        x=torch.cat([self.class_embedding.to(x.dtype)+torch.zeros(x.shape[0],1,x.shape[-1],dtype=x.dtype,device=torch.device("cuda:0")),x],dim=1)
         x=x + self.positional_embedding.to(x.dtype)
         x=self.ln_pre(x)
         x=x.permute(1,0,2)
@@ -271,18 +271,18 @@ class VisionTransformer64(nn.Module):
         self.output_dim=output_dim
         self.conv1=nn.Conv2d(in_channels=3,out_channels=width,kernel_size=patch_size,stride=patch_size,bias=False)
         scale=width**-0.5
-        self.class_embedding=nn.Parameter(scale*torch.randn(width))
-        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width))
+        self.class_embedding=nn.Parameter(scale*torch.randn(width,device=torch.device("cuda:0")))
+        self.positional_embedding=nn.Parameter(scale*torch.randn((input_resolution//patch_size)**2+1,width,device=torch.device("cuda:0")))
         self.ln_pre=LayerNorm64(width)
         self.transformer=Transformer64(width,layers,heads)
         self.ln_post=LayerNorm64(width)
-        self.proj=nn.Parameter(scale*torch.randn(width,output_dim))
+        self.proj=nn.Parameter(scale*torch.randn(width,output_dim,device=torch.device("cuda:0")))
     def forward(self,x:torch.Tensor):
         x=self.conv1(x)
         x=x.reshape(x.shape[0],x.shape[1],-1)
         x=x.permute(0,2,1)
-        x=torch.cat([self.class_embedding.to(x.dtype)+torch.zeros(x.shape[0],1,x.shape[-1],dtype=torch.float64,device=x.device),x],dim=1)
-        x=x + self.positional_embedding.to(torch.float64)
+        x=torch.cat([self.class_embedding.to(x.dtype)+torch.zeros(x.shape[0],1,x.shape[-1],dtype=torch.float64,device=torch.device("cuda:0")),x],dim=1)
+        x=x+self.positional_embedding.to(torch.float64)
         x=self.ln_pre(x)
         x=x.permute(1,0,2)
         x=self.transformer(x)
@@ -334,10 +334,10 @@ class CLIP(nn.Module):
         )
         self.vocab_size=vocab_size
         self.token_embedding=nn.Embedding(vocab_size,transformer_width)
-        self.positional_embedding=nn.Parameter(torch.empty(self.context_length,transformer_width))
+        self.positional_embedding=nn.Parameter(torch.empty(self.context_length,transformer_width,device=torch.device("cuda:0")))
         self.ln_final=LayerNorm(transformer_width)
-        self.text_projection=nn.Parameter(torch.empty(transformer_width,embed_dim))
-        self.logit_scale=nn.Parameter(torch.ones([])*np.log(1/0.07))
+        self.text_projection=nn.Parameter(torch.empty(transformer_width,embed_dim,device=torch.device("cuda:0")))
+        self.logit_scale=nn.Parameter(torch.ones([],device=torch.device("cuda:0"))*np.log(1/0.07))
         self.initialize_parameters()
     def initialize_parameters(self):
         nn.init.normal_(self.token_embedding.weight,std=0.02)
@@ -364,7 +364,7 @@ class CLIP(nn.Module):
         if self.text_projection is not None:
             nn.init.normal_(self.text_projection,std=self.transformer.width**-0.5)
     def build_attention_mask(self):
-        mask=torch.empty(self.context_length,self.context_length)
+        mask=torch.empty(self.context_length,self.context_length,device=torch.device("cuda:0"))
         mask.fill_(float("-inf"))
         mask.triu_(1)
         return mask
@@ -380,7 +380,7 @@ class CLIP(nn.Module):
         x=self.transformer(x)
         x=x.permute(1,0,2)
         x=self.ln_final(x).type(self.dtype)
-        x=x[torch.arange(x.shape[0]),text.argmax(dim=-1)] @ self.text_projection
+        x=x[torch.arange(x.shape[0],device=torch.device("cuda:0")),text.argmax(dim=-1)] @ self.text_projection
         return x
     def forward(self,image,text):
         image_features=self.encode_image(image)
@@ -434,10 +434,10 @@ class CLIP16(nn.Module):
         )
         self.vocab_size=vocab_size
         self.token_embedding=nn.Embedding(vocab_size,transformer_width)
-        self.positional_embedding=nn.Parameter(torch.empty(self.context_length,transformer_width))
+        self.positional_embedding=nn.Parameter(torch.empty(self.context_length,transformer_width,device=torch.device("cuda:0")))
         self.ln_final=LayerNorm16(transformer_width)
-        self.text_projection=nn.Parameter(torch.empty(transformer_width,embed_dim))
-        self.logit_scale=nn.Parameter(torch.ones([])*np.log(1/0.07))
+        self.text_projection=nn.Parameter(torch.empty(transformer_width,embed_dim,device=torch.device("cuda:0")))
+        self.logit_scale=nn.Parameter(torch.ones([],device=torch.device("cuda:0"))*np.log(1/0.07))
         self.initialize_parameters()
     def initialize_parameters(self):
         nn.init.normal_(self.token_embedding.weight,std=0.02)
@@ -464,7 +464,7 @@ class CLIP16(nn.Module):
         if self.text_projection is not None:
             nn.init.normal_(self.text_projection,std=self.transformer.width**-0.5)
     def build_attention_mask(self):
-        mask=torch.empty(self.context_length,self.context_length)
+        mask=torch.empty(self.context_length,self.context_length,device=torch.device("cuda:0"))
         mask.fill_(float("-inf"))
         mask.triu_(1)
         return mask
@@ -480,7 +480,7 @@ class CLIP16(nn.Module):
         x=self.transformer(x)
         x=x.permute(1,0,2)  # LND -> NLD
         x=self.ln_final(x).type(self.dtype)
-        x=x[torch.arange(x.shape[0]),text.argmax(dim=-1)] @ self.text_projection
+        x=x[torch.arange(x.shape[0],device=torch.device("cuda:0")),text.argmax(dim=-1)] @ self.text_projection
         return x
     def forward(self,image,text):
         image_features=self.encode_image(image)
@@ -534,10 +534,10 @@ class CLIP64(nn.Module):
         )
         self.vocab_size=vocab_size
         self.token_embedding=nn.Embedding(vocab_size,transformer_width)
-        self.positional_embedding=nn.Parameter(torch.empty(self.context_length,transformer_width))
+        self.positional_embedding=nn.Parameter(torch.empty(self.context_length,transformer_width,device=torch.device("cuda:0")))
         self.ln_final=LayerNorm64(transformer_width)
-        self.text_projection=nn.Parameter(torch.empty(transformer_width,embed_dim))
-        self.logit_scale=nn.Parameter(torch.ones([])*np.log(1/0.07))
+        self.text_projection=nn.Parameter(torch.empty(transformer_width,embed_dim,device=torch.device("cuda:0")))
+        self.logit_scale=nn.Parameter(torch.ones([],device=torch.device("cuda:0"))*np.log(1/0.07))
         self.initialize_parameters()
     def initialize_parameters(self):
         nn.init.normal_(self.token_embedding.weight,std=0.02)
@@ -564,7 +564,7 @@ class CLIP64(nn.Module):
         if self.text_projection is not None:
             nn.init.normal_(self.text_projection,std=self.transformer.width**-0.5)
     def build_attention_mask(self):
-        mask=torch.empty(self.context_length,self.context_length)
+        mask=torch.empty(self.context_length,self.context_length,device=torch.device("cuda:0"))
         mask.fill_(float("-inf"))
         mask.triu_(1)
         return mask
@@ -580,7 +580,7 @@ class CLIP64(nn.Module):
         x=self.transformer(x)
         x=x.permute(1,0,2)  # LND -> NLD
         x=self.ln_final(x).type(self.dtype)
-        x=x[torch.arange(x.shape[0]),text.argmax(dim=-1)] @ self.text_projection
+        x=x[torch.arange(x.shape[0],device=torch.device("cuda:0")),text.argmax(dim=-1)] @ self.text_projection
         return x
     def forward(self,image,text):
         image_features=self.encode_image(image)
