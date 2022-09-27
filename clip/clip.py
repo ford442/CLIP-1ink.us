@@ -86,7 +86,7 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
             model.float();
         return model,_transform(sIze);
     return model,_transform(sIze);
-    device_holder=torch.jit.trace(lambda:torch.ones([]).to(torch.device(device)),example_inputs=[]);
+    device_holder=torch.jit.trace(lambda:torch.ones([],device=tdevice),example_inputs=[]);
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1];
     def patch_device(module):
         try:
@@ -137,7 +137,7 @@ def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=Fals
     sot_token=_tokenizer.encoder["<|startoftext|>"];
     eot_token=_tokenizer.encoder["<|endoftext|>"];
     all_tokens=[[sot_token]+_tokenizer.encode(text)+[eot_token]for text in texts];
-    result=torch.zeros(len(all_tokens),context_length,dtype=torch.int);
+    result=torch.zeros(len(all_tokens),context_length,dtype=torch.int,device=tdevice);
     for i, tokens in enumerate(all_tokens):
         if len(tokens)>context_length:
             if truncate:
@@ -145,5 +145,5 @@ def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=Fals
                 tokens[-1]=eot_token;
             else:
                 raise RuntimeError(f"Input {texts[i]} is too long for context length {context_length}");
-        result[i,:len(tokens)]=torch.tensor(tokens);
+        result[i,:len(tokens)]=torch.tensor(tokens,device=tdevice);
     return result;
