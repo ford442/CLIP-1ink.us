@@ -134,6 +134,7 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
 def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
         texts=[texts];
+    tdevice=torch.device("cuda:0");
     sot_token=_tokenizer.encoder["<|startoftext|>"];
     eot_token=_tokenizer.encoder["<|endoftext|>"];
     all_tokens=[[sot_token]+_tokenizer.encode(text)+[eot_token]for text in texts];
