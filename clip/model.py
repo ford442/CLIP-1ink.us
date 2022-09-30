@@ -628,7 +628,7 @@ def convert_weights64(model:nn.Module):
                     attr.data=attr.data.to(torch.float64)
     model.apply(_convert_weights_to_fp64)
 
-def build_model(fp16bit,fp64bit,state_dict: dict):
+def build_model(fp16bit,fp64bit,state_dict):
     vit="visual.proj" in state_dict
     if vit:
         vision_width=state_dict["visual.conv1.weight"].shape[0]
