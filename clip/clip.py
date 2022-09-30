@@ -70,22 +70,14 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
     model_path=name;
     jit=tjit;
     with open(model_path, 'rb') as opened_file:
-        try:
-            if tjit==True:
-                model=torch.jit.load(opened_file,map_location=None);
-            else:
-                model=torch.jit.load(opened_file,map_location=cdevice);
+        if tjit==True:
+            model=torch.jit.load(opened_file,map_location=None);
             state_dict=None;
-        except RuntimeError:
-            if jit:
-                warnings.warn(f"File {model_path} is not a JIT archive. Loading as a state dict instead");
-                jit=False;
-            state_dict=torch.load(opened_file,map_location=cdevice);
-    if not jit:
-        model=build_model(fp16bit,fp64bit,state_dict or model.state_dict());
-        if str(device)=="cpu":
+        else:
+            state_dict=torch.load(opened_file,map_location=None);
+            model=build_model(fp16bit,fp64bit,state_dict or model.state_dict());
+    if str(device)=="cpu":
             model.float();
-        return model,_transform(sIze);
     return model,_transform(sIze);
     device_holder=torch.jit.trace(lambda:torch.ones([],device=tdevice),example_inputs=[]);
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1];
@@ -130,7 +122,7 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
         model.to(torch.float32);
     if fp64bit==True:
         model.to(torch.float64);
-    return model,_transform(sIze);
+    return model, _transform(model.input_resolution.item())
 
 def tokenize(texts:Union[str,List[str]],context_length:int=77,truncate:bool=False)->Union[torch.IntTensor,torch.LongTensor]:
     if isinstance(texts,str):
