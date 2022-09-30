@@ -1,7 +1,9 @@
 import os
-from distutils.extension import Extension;
+import setuptools
+from setuptools import Extension,setup,find_packages;
 import pkg_resources
-from setuptools import setup, find_packages
+from Cython.Build import cythonize;
+
 extensions = [Extension('clip',['clip/clip.py'])];
 
 setup(
@@ -19,4 +21,5 @@ setup(
     ],
     include_package_data=True,
     extras_require={'dev': ['pytest']},
+    ext_modules = cythonize(extensions),
 )
