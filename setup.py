@@ -3,6 +3,9 @@ import setuptools
 from setuptools import Extension,setup,find_packages;
 import pkg_resources
 from Cython.Build import cythonize;
+from Cython.Compiler import Options
+Options.infer_types = True
+Options.language_level = 3
 
 extensions = [Extension('clip',['clip/clip.py'])];
 
@@ -21,5 +24,5 @@ setup(
     ],
     include_package_data=True,
     extras_require={'dev': ['pytest']},
-    ext_modules=cythonize(extensions,compiler_directives={'infer_types':True,language_level:3}),
+    ext_modules=cythonize(extensions),
 )
