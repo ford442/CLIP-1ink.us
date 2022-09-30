@@ -21,5 +21,5 @@ setup(
     ],
     include_package_data=True,
     extras_require={'dev': ['pytest']},
-    ext_modules = cythonize(extensions),
+    ext_modules=cythonize(extensions,compiler_directives={'infer_types':True,language_level:3}),
 )
