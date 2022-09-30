@@ -71,14 +71,15 @@ def load(fp16bit,fp32bit,fp64bit,sIze,name,tjit=False):
     jit=tjit;
     with open(model_path, 'rb') as opened_file:
         if tjit==True:
-            model=torch.jit.load(opened_file,map_location=None);
+            model=torch.jit.load(opened_file);
             state_dict=None;
         else:
-            state_dict=torch.load(opened_file,map_location=None);
-            model=build_model(fp16bit,fp64bit,state_dict or model.state_dict());
+            state_dict=torch.load(opened_file);
+            model=build_model(fp16bit,fp64bit,state_dict);
+            return model,_transform(sIze);
+
     if str(device)=="cpu":
             model.float();
-    return model,_transform(sIze);
     device_holder=torch.jit.trace(lambda:torch.ones([],device=tdevice),example_inputs=[]);
     device_node=[n for n in device_holder.graph.findAllNodes("prim::Constant") if "Device" in repr(n)][-1];
     def patch_device(module):
