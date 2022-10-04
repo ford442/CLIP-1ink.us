@@ -7,7 +7,7 @@ from Cython.Compiler import Options
 Options.infer_types = True
 Options.language_level = 3
 
-extensions = [Extension('clip',['clip/clip.py'])];
+extensions = [Extension('clip',['clip/*.py'])];
 
 setup(
     name="clip",
